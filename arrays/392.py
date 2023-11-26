@@ -7,6 +7,8 @@ A subsequence of a string is a new string that is formed from the original strin
 of the characters without disturbing the relative positions of the remaining characters. (i.e., "ace" is a subsequence of "abcde" while "aec" is not).
 """
 def isSubsequence(s,t):
+    if len(s) == 0:
+        return True
     # two pointer 
     s_pointer = 0
 
@@ -15,7 +17,10 @@ def isSubsequence(s,t):
         # check t[i] matches s[0], if true, 
         if t[i] == s[s_pointer]:
             s_pointer += 1
-    
+
+        if s_pointer == len(s):
+            return True
+
     return s_pointer == len(s)
 
 s = "ace"
