@@ -30,11 +30,60 @@ Example 2:
 Input: dominoes = ".L.R...LR..L.."
 Output: "LL.RR.LLRRLL.."
 '''
+class Solution:
+    def pushDominoes(self, dominoes):
+        if len(dominoes) <= 1:
+            return dominoes
+        
+        self.dominoes = list(dominoes)
 
-def pushDominoes(dominoes):
-    for i in range(len(dominoes)):
-        if dominoes[i] == "L":
-            # topple everything to the left of i
-        elif dominoes[i] == "R":
-            # topple everything to the right of i
-            
+        # break into segments
+        segments = []
+        left = 0
+        right = 1
+        while right < len(self.dominoes):
+            if self.dominoes[right] == 'L' or self.dominoes[right] == 'R':
+                # cut the segment
+                # start a new segment
+                segments.append((left,right))
+                left = right
+                right += 1
+            else:
+                right += 1
+        segments.append((left,right-1))
+
+        for (left, right) in segments:
+            if (self.dominoes[left] == '.' and self.dominoes[right] == 'L') or (self.dominoes[left] == 'L' and self.dominoes[right] == 'L'):
+                # everything is L
+                self.turnEverythingLeft(left, right)
+
+            elif (self.dominoes[left] == 'R' and self.dominoes[right] == '.') or (self.dominoes[left] == 'R' and self.dominoes[right] == 'R'):
+                # everything is R
+                self.turnEverythingRight(left, right)
+            elif self.dominoes[left] == 'R' and self.dominoes[right] == 'L':
+                self.topple(left, right)
+        
+        return self.dominoes
+    
+    def turnEverythingLeft(self, left, right):
+        for i in range(left, right + 1):
+            self.dominoes[i] = 'L'
+    
+    def turnEverythingRight(self, left, right):
+        for i in range(left, right + 1):
+            self.dominoes[i] = 'R'
+
+    def topple(self, left, right):
+        if len(self.dominoes[left:right + 1]) > 2:
+            l = left + 1
+            r = right - 1
+            while l < r:
+                self.dominoes[l] = 'R'
+                self.dominoes[r] = 'L'
+                l += 1
+                r -= 1
+        
+
+
+dominoes = ".L.R...LR..L.."
+print(Solution().alternateSolution(dominoes))

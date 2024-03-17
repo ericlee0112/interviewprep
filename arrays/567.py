@@ -56,4 +56,4 @@ class Solution:
 
 s1 = "ab"
 s2 = "eidboaoo"
-print(checkInclusion(s1,s2))
+print(Solution().checkInclusion(s1,s2))
