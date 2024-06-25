@@ -54,3 +54,32 @@ class BetterSolution:
 betterSolution = BetterSolution()
 betterRes = betterSolution.topKFrequent(nums, k)
 print(betterRes)
+
+
+
+class BestSolution:
+    def topKFrequent(self, nums, k):
+        bucket_array = [ [] for i in range(len(nums) + 1)]
+
+        freqmap = collections.defaultdict(int)
+        for num in nums:
+            freqmap[num] += 1
+        
+        for (key,val) in freqmap.items():
+            bucket_array[val].append(key)
+
+        ans = []
+        for i in range(len(bucket_array) - 1, -1, -1):
+            keys = bucket_array[i]
+            for key in keys:
+                ans.append(key)
+                k -= 1
+            
+            if k == 0:
+                return ans
+
+        return ans
+
+bestSolution = BestSolution()
+bestResult = bestSolution.topKFrequent(nums, k)
+print(bestResult)
