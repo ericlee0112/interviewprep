@@ -28,19 +28,20 @@ def insert(intervals, interval):
     sortedintervals = sorted(intervals, key=lambda x: x[0])
     print(sortedintervals)
 
-    for i in range(len(sortedintervals) - 2):
+    ans = [intervals[0]]
+
+    for i in range(1, len(sortedintervals)):
+        lastend = ans[-1][1]
+
         start = sortedintervals[i][0]
         end = sortedintervals[i][1]
-        print(start)
-        print(end)
-        # compare end with intervals[i + 1][0]
-        if i == 0 and end > sortedintervals[i + 1][0]:
+        
+        if start <= lastend:
             # merge
-            sortedintervals[i][1] = sortedintervals[i + 1][1]
-            del(sortedintervals[i + 1])
-        elif i > 0 and end 
-        # compare start with intervals[i]
-    return sortedintervals
+            ans[-1][1] = max(lastend, end)
+        else:
+            ans.append([start,end])
+    return ans
 
 
 
