@@ -64,3 +64,4 @@ medianFinder.addNum(3)
 medianFinder.addNum(7)
 print(medianFinder.findMedian())
 
+
