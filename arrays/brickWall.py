@@ -7,7 +7,14 @@ Draw a vertical line from the top to the bottom and cross the least bricks. If y
 
 Given the 2D array wall that contains the information about the wall, return the minimum number of crossed bricks after drawing such a vertical line.
 
-Input: wall = [[1,2,2,1],[3,1,2],[1,3,2],[2,4],[3,1,2],[1,3,1,1]]
+Input: wall = 
+[[1,2,2,1],
+[3,1,2],
+[1,3,2],
+[2,4],
+[3,1,2],
+[1,3,1,1]]
+
 Output: 2
 
 Input: wall = [[1],[1],[1]]
@@ -16,7 +23,7 @@ Output: 3
 '''
 
 class Solution:
-    def leastBricks(self, wall: List[List[int]]) -> int:
+    def leastBricks(self, wall):
         # keep track of the frequencies of each wall cut
         edge_frequences = collections.defaultdict(int)
 
