@@ -63,3 +63,26 @@ class Solution:
                     self.dp[j + 1] = True
             else:
                 break
+
+'''
+this approach works but results in TLE in Leetcode
+'''
+class AnotherSolutionThatDoesntUseTrie:
+    def wordBreak(self, s, words):
+        self.wordset = set(words)
+        self.s = s
+        
+        return self.findSegmentation("", [], 0) 
+
+    
+    def findSegmentation(self, word, segmentation, index):
+        if index == len(self.s):
+            if word in self.wordset:
+                return True
+            return False
+        
+        if word in self.wordset:
+            return self.findSegmentation(self.s[index], segmentation + [word], index + 1) or self.findSegmentation(word + self.s[index], segmentation, index + 1)
+        else:
+            return self.findSegmentation(word + self.s[index], segmentation, index + 1)
+
