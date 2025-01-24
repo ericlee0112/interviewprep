@@ -1,0 +1,78 @@
+na sqs
+{
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+      "receiptHandle": "MessageReceiptHandle",
+      "body": "{\"eventID\":\"875907120b127ee2624596fc6cbc1309\",\"eventName\":\"INSERT\",\"eventVersion\":\"1.1\",\"eventSource\":\"aws:dynamodb\",\"awsRegion\":\"us-east-1\",\"dynamodb\":{\"ApproximateCreationDateTime\":1709243378,\"Keys\":{\"imageid\":{\"S\":\"imageId-5cc5e075-8b2f-7c05-cd4e-50446e253601\"}},\"NewImage\":{\"concessionid\":{\"S\":\"null\"},\"creationdate\":{\"N\":\"1706185646947\"},\"auditedtimestamp\":{\"N\":\"1706185647473\"},\"datasetdate\":{\"S\":\"2024-01-25\"},\"imageid\":{\"S\":\"imageId-5cc5e075-8b2f-7c05-cd4e-50446e253601\"},\"reasoncode\":{\"S\":\"DELIVERED_TO_DOORSTEP\"},\"dnr\":{\"BOOL\":false},\"negativeFeedback\":{\"BOOL\":false},\"addressid\":{\"S\":\"626114536503\"}},\"SequenceNumber\":\"1034541500000000039214621511\",\"SizeBytes\":182,\"StreamViewType\":\"NEW_IMAGE\"},\"eventSourceARN\":\"arn:aws:dynamodb:us-east-1:814744664322:table/combined_image_information-prod-us-east-1/stream/2024-02-02T17:38:03.939\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "{{{md5_of_body}}}",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+      "awsRegion": "us-east-1"
+}
+
+{
+  "Records": [
+    {
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+      "receiptHandle": "MessageReceiptHandle",
+      "body": "{\"eventID\":\"875907120b127ee2624596fc6cbc1309\",\"eventName\":\"INSERT\",\"eventVersion\":\"1.1\",\"eventSource\":\"aws:dynamodb\",\"awsRegion\":\"us-east-1\",\"dynamodb\":{\"ApproximateCreationDateTime\":1709243378,\"Keys\":{\"imageid\":{\"S\":\"imageId-cec4deac-27a9-c4fd-d387-f6e2a529f634\"}},\"NewImage\":{\"concessionid\":{\"S\":\"null\"},\"creationdate\":{\"N\":\"1706185646947\"},\"auditedtimestamp\":{\"N\":\"1706185647473\"},\"datasetdate\":{\"S\":\"2024-12-25\"},\"imageid\":{\"S\":\"imageId-cec4deac-27a9-c4fd-d387-f6e2a529f634\"},\"reasoncode\":{\"S\":\"DELIVERED_TO_DOORSTEP\"},\"dnr\":{\"BOOL\":false},\"negativeFeedback\":{\"BOOL\":false},\"addressid\":{\"S\":\"5555555555555\"}},\"SequenceNumber\":\"1034541500000000039214621511\",\"SizeBytes\":182,\"StreamViewType\":\"NEW_IMAGE\"},\"eventSourceARN\":\"arn:aws:dynamodb:us-east-1:814744664322:table/combined_image_information-prod-us-east-1/stream/2024-02-02T17:38:03.939\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "{{{md5_of_body}}}",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}
+
+jp sqs 
+{
+  "Records": [
+      {
+            "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+            "receiptHandle": "MessageReceiptHandle",
+            "body": "{\"eventID\":\"875907120b127ee2624596fc6cbc1309\",\"eventName\":\"INSERT\",\"eventVersion\":\"1.1\",\"eventSource\":\"aws:dynamodb\",\"awsRegion\":\"us-west-2\",\"dynamodb\":{\"ApproximateCreationDateTime\":1709243378,\"Keys\":{\"imageid\":{\"S\":\"imageId-aec1b41d-e069-7f27-dfce-bc16425e7b96\"}},\"NewImage\":{\"concessionid\":{\"S\":\"null\"},\"creationdate\":{\"N\":\"1706185646947\"},\"auditedtimestamp\":{\"N\":\"1706185647473\"},\"datasetdate\":{\"S\":\"2024-01-01\"},\"imageid\":{\"S\":\"imageId-aec1b41d-e069-7f27-dfce-bc16425e7b96\"},\"reasoncode\":{\"S\":\"DELIVERED_TO_DOORSTEP\"},\"dnr\":{\"BOOL\":false},\"negativeFeedback\":{\"BOOL\":false},\"addressid\":{\"S\":\"7777777777777\"}},\"SequenceNumber\":\"1034541500000000039214621511\",\"SizeBytes\":182,\"StreamViewType\":\"NEW_IMAGE\"},\"eventSourceARN\":\"arn:aws:dynamodb:us-east-1:814744664322:table/combined_image_information-prod-us-east-1/stream/2024-02-02T17:38:03.939\"}",
+            "attributes": {
+              "ApproximateReceiveCount": "1",
+              "SentTimestamp": "1523232000000",
+              "SenderId": "123456789012",
+              "ApproximateFirstReceiveTimestamp": "1523232000001"
+            },
+            "messageAttributes": {},
+            "md5OfBody": "{{{md5_of_body}}}",
+            "eventSource": "aws:sqs",
+            "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+            "awsRegion": "us-east-1"
+      }
+  ]
+}    
+
+eu sqs
+{
+      "messageId": "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+      "receiptHandle": "MessageReceiptHandle",
+      "body": "{\"eventID\":\"875907120b127ee2624596fc6cbc1309\",\"eventName\":\"INSERT\",\"eventVersion\":\"1.1\",\"eventSource\":\"aws:dynamodb\",\"awsRegion\":\"eu-west-1\",\"dynamodb\":{\"ApproximateCreationDateTime\":1709243378,\"Keys\":{\"imageid\":{\"S\":\"imageId-76c5be1e-c06c-8f7f-0abb-747a67fa1678\"}},\"NewImage\":{\"concessionid\":{\"S\":\"null\"},\"creationdate\":{\"N\":\"1706185646947\"},\"auditedtimestamp\":{\"N\":\"1706185647473\"},\"datasetdate\":{\"S\":\"2024-01-01\"},\"imageid\":{\"S\":\"imageId-76c5be1e-c06c-8f7f-0abb-747a67fa1678\"},\"reasoncode\":{\"S\":\"DELIVERED_TO_DOORSTEP\"},\"dnr\":{\"BOOL\":false},\"negativeFeedback\":{\"BOOL\":false},\"addressid\":{\"S\":\"626114536503\"}},\"SequenceNumber\":\"1034541500000000039214621511\",\"SizeBytes\":182,\"StreamViewType\":\"NEW_IMAGE\"},\"eventSourceARN\":\"arn:aws:dynamodb:us-east-1:814744664322:table/combined_image_information-prod-us-east-1/stream/2024-02-02T17:38:03.939\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "{{{md5_of_body}}}",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+      "awsRegion": "us-east-1"
+}

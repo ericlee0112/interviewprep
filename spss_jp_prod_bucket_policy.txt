@@ -1,0 +1,121 @@
+{
+    "Version": "2012-10-17",
+    "Id": "S3-Console-Auto-Gen-Policy-1599665869935",
+    "Statement": [
+        {
+            "Sid": "S3PolicyStmt-DO-NOT-MODIFY-1599665869799",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "s3.amazonaws.com"
+            },
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::us-prod-temp/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "327717514253",
+                    "s3:x-amz-acl": "bucket-owner-full-control"
+                },
+                "ArnLike": {
+                    "aws:SourceArn": "arn:aws:s3:::us-prod-temp"
+                }
+            }
+        },
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::898229039460:user/iyounus"
+            },
+            "Action": [
+                "s3:GetObjectAcl",
+                "s3:GetObject",
+                "s3:GetObjectAttributes",
+                "s3:ListBucket",
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:GetBucketPolicy"
+            ],
+            "Resource": [
+                "arn:aws:s3:::us-prod-temp",
+                "arn:aws:s3:::us-prod-temp/*"
+            ]
+        },
+        {
+            "Sid": "Statement2",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "AIDAZNFOL35IPG5QZ7X4F"
+            },
+            "Action": [
+                "s3:GetObjectAcl",
+                "s3:GetObject",
+                "s3:GetObjectAttributes",
+                "s3:ListBucket",
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:GetBucketPolicy"
+            ],
+            "Resource": [
+                "arn:aws:s3:::us-prod-temp",
+                "arn:aws:s3:::us-prod-temp/*"
+            ]
+        },
+        {
+            "Sid": "Statement3",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::898229039460:role/dev_role"
+            },
+            "Action": [
+                "s3:GetObjectAcl",
+                "s3:GetObject",
+                "s3:GetObjectAttributes",
+                "s3:ListBucket",
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:GetBucketPolicy"
+            ],
+            "Resource": [
+                "arn:aws:s3:::us-prod-temp",
+                "arn:aws:s3:::us-prod-temp/*"
+            ]
+        },
+        {
+            "Sid": "ManualAuditSite",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "AIDAXNRZPFL5QODS4DNBM"
+            },
+            "Action": [
+                "s3:GetObjectAcl",
+                "s3:GetObject",
+                "s3:GetObjectAttributes",
+                "s3:ListBucket",
+                "s3:GetBucketAcl",
+                "s3:GetBucketLocation",
+                "s3:GetBucketPolicy"
+            ],
+            "Resource": [
+                "arn:aws:s3:::us-prod-temp",
+                "arn:aws:s3:::us-prod-temp/*"
+            ]
+        },
+        {
+            "Sid": "EnforceTLSv12orHigher",
+            "Effect": "Deny",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::us-prod-temp",
+                "arn:aws:s3:::us-prod-temp/*"
+            ],
+            "Condition": {
+                "NumericLessThan": {
+                    "s3:TlsVersion": "1.2"
+                }
+            }
+        }
+    ]
+}

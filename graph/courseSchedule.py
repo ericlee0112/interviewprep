@@ -70,7 +70,7 @@ class Solution:
             res = self.dfs(course)
             if res == False:
                 return False
-            
+             
         return True
     
     def dfs(self, course):

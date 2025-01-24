@@ -1,0 +1,89 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "VisualEditor0",
+			"Effect": "Allow",
+			"Action": [
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:DeleteObject"
+			],
+			"Resource": [
+				"arn:aws:s3:::reasoncodehistory-prod-us-east-1",
+				"arn:aws:s3:::reasoncodehistory-output-us-east-1",
+				"arn:aws:s3:::reasoncodehistory-prod-us-east-1/*",
+				"arn:aws:s3:::reasoncodehistory-output-us-east-1/*"
+			]
+		},
+		{
+			"Sid": "VisualEditor1",
+			"Effect": "Allow",
+			"Action": [
+				"s3:ListBucket",
+				"s3:GetObject",
+				"s3:ListBucket",
+				"s3:DeleteObject"
+			],
+			"Resource": [
+				"arn:aws:s3:::reasoncodehistory-prod-us-east-1",
+				"arn:aws:s3:::reasoncodehistory-output-us-east-1",
+				"arn:aws:s3:::reasoncodehistory-prod-us-east-1/*",
+				"arn:aws:s3:::reasoncodehistory-output-us-east-1/*"
+			]
+		},
+		{
+			"Sid": "VisualEditor3",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:Batch*",
+				"dynamodb:PutItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:Get*",
+				"dynamodb:Scan",
+				"dynamodb:Query",
+				"dynamodb:UpdateItem",
+				"dynamodb:List*",
+				"dynamodb:Describe*"
+			],
+			"Resource": [
+				"arn:aws:dynamodb:us-east-1:*:table/PREFERRED_REASON_CODE"
+			]
+		},
+		{
+			"Sid": "VisualEditor4",
+			"Action": "dynamodb:DescribeTable",
+			"Resource": [
+				"arn:aws:dynamodb:us-east-1:*:table/PREFERRED_REASON_CODE"
+			],
+			"Effect": "Allow"
+		},
+		{
+			"Sid": "VisualEditor5",
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:Batch*",
+				"dynamodb:PutItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:Get*",
+				"dynamodb:Scan",
+				"dynamodb:Query",
+				"dynamodb:UpdateItem",
+				"dynamodb:List*",
+				"dynamodb:Describe*"
+			],
+			"Resource": [
+				"arn:aws:dynamodb:us-east-1:*:table/PREFERRED_REASON_TEST"
+			]
+		},
+		{
+			"Sid": "VisualEditor6",
+			"Action": "dynamodb:DescribeTable",
+			"Resource": [
+				"arn:aws:dynamodb:us-east-1:*:table/PREFERRED_REASON_TEST"
+			],
+			"Effect": "Allow"
+		}
+	]
+}

@@ -1,0 +1,95 @@
+## Outage / Activity Details
+Pipeline : https://pipelines.amazon.com/pipelines/LastMileImageAuditML
+
+#### What is the purpose of this activity or change?
+Deploying new AMZL POD CV Model to PROD-US. Although this will only change the state of PROD-US, for the sake of consistency, we are deploying this change to all PROD environments.
+
+### diff
+LastMileImageAuditML changes
+(zhongxli) fix missing metric when certain ml result was hard coded to valid or invalid : https://code.amazon.com/packages/LastMileImageAuditML/commits/86696eb75fe9c0271f42b8870c934bc40f6edf1d# 
+(zhongxli) need to merge this to test if we can fix merge from live issue : https://code.amazon.com/packages/LastMileImageAuditML/commits/a0dc3ad6604da7a4a4559dd0b762b52293fece18#
+(zhongxli) move Human in photo for SWA to invalid so we can skip manual auditing : https://code.amazon.com/packages/LastMileImageAuditML/commits/cfd09fbaf5f5ae8333e4a51039a15479a03b86ed#
+(leeic) Revert "move Human in photo for SWA to invalid so we can skip manual auditing" : https://code.amazon.com/packages/LastMileImageAuditML/commits/71d00d0db8ab531a8f68d8e3d237076e4eda0803#
+
+LastMileImageAuditMLCDK 
+(zhongxli) attampt to fix the merge from live issue. might need to force merge this CR so we can merge on the version set :  https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/64656b2530b9c3db8ce1353a0ad669e92c60f8f9# 
+(zhongxli) fix wrong version number fo AsmlModelHostingLambdas :  https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/9298816d5b0a66f551f8c695ad074fc90cfeb8f5#
+(tjdinesh) Reverting to previous versions : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/9183168acb36596b27b86a6bfb36a2bb2f23207c#
+(zhongxli) fixing the pipeline by updating AlexaMLHostingCdkConstructs to 4.3 : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/3560de995cc9b9db6450f84f9ca9f06857a8aa69#
+(zhongxli) attampt to fix the merge from live in CDK : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/75a0d16e41670797a6e95549d80c98c958b3a933#
+(leeic) partition modelConfig based on pipeline stage : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/1586a60d231ca2fb884cd758d08e7696e5b28ab1#
+(leeic) adding shadow mode model configs to PROD-US AMZL and updatng ModelHostingStack to accomodate shadow model : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/103b2e93410cf269df5d6a0f827bcfe92965f63e#
+(leeic) enable data capture only for model outputs : https://code.amazon.com/packages/LastMileImageAuditMLCDK/commits/ce0c490c9f459868e71b8b97b0bacb01f7278356#
+
+#### What will be required to execute this change?
+The technician (SDE) will have to monitor dashboards/metrics and pipeline during deployment and enable promotions between stages to deploy to all production stages.
+
+#### What is the expected end state of the system after this change?
+Upstream and downstream customers should not be impacted. 
+The behaviour of the existing production sagemaker endpoint in all environments for all program types / image types should remain the same.
+In PROD US, we should see that the new AMZL POD CV Model should be deployed on the shadow endpoint, running in parallel with the existing production endpoint
+
+
+#### What assumptions, if any, are being made about the state of the system at the time of this change?
+That the auto audit pipeline is healthy. That the production endpoints are working.
+
+
+## Impact / Risk Assessment
+#### Why is it necessary? What is the impact of not making this change?
+We need to deploy the new AMZL POD CV model in shadow mode so that it can ingest production traffic and output results into the datacapture s3 bucket so that our Applied Science team can perform model analysis between the shadow and production endpoints.
+
+#### Why does this activity or change need to be done under MCM? Can it be safely automated?
+Yes but we are using MCM to keep a source of record on the state of this deployment. 
+
+#### Why is this the correct time/day to complete the CM?
+We are deliberately deploying to specific stages at time periods of low traffic to ensure that few customers are impacted in the worst case scenario.
+
+#### Are there any related, prerequisite changes upon which this CM hinges?
+No
+
+#### Will this CM be in any way intrusive, and if so, how will you know? What teams, services or functionality will be impacted?
+No, the existing production sagemaker endpoints will not and should not change. We are just adding a shadow mode endpoint to PROD-US LastMileImageAuditML sagemaker endpoint
+
+
+
+#### Is this change modifying a tier-1 service or website? Which one?
+No
+
+#### How has this change been tested to verify it’s safe for production?
+manually tested by uploading an image through Coral explorer and verified that output was shown in datacapture s3 bucket in the form of json data
+
+## Affected Services
+LastMileImageAuditML
+
+#### Does this change involve other dependencies? Are they aware of this CM and on the cc-list or approvals for it?
+No
+
+#### Provide links to your dependencies dashboard(s)
+https://w.amazon.com/bin/view/DTO/Team/TransporterXOnRoad/DQ/Dashboards/POD_model_decisions/
+https://w.amazon.com/bin/viewrev/POD_Manual_Audit_for_GSF/WebHome
+https://w.amazon.com/bin/view/PODAutoAuditDashboard/
+
+## Worst Case Scenario
+
+#### What could happen if everything goes wrong with this change?
+- deployment fails and we will need to investigate why the change failed to deploy
+- deployment succeeds but suddenly we see various SEV2s, auto audit models erroring out, manual auditors reporting changes in behaviour. As a result, we will have to rollback this change. 
+
+#### How does this CM attempt to mitigate this risk?
+To keep track of the state of the deployment. 
+
+#### Is this change following [Two Person Rule](https://w.amazon.com/bin/view/AWS/2-person_Rule/)? If no, what are the reasons to not follow "Two Person Rule"?
+Yes we will follow the 2 person Rule
+
+## Rollback Procedure
+Detailed rollback procedures can be added at the step level - just provide a general overview here.
+Rollback change via pipeline 
+
+#### What conditions would indicate a need to rollback? Provide graphs with rollback thresholds marked, or other clear indicators to the technicians when a rollback is required
+SPUS / POD Auto Audit SEV2s, Manual Audit reported issues
+
+
+#### In the event of problems, what will you do to return your system to a known good state?
+Rollback the changes and verify that SPUS has returned to its previous working state
+
+

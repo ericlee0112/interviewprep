@@ -15,7 +15,7 @@ loop from 0 to len(gas)
 
 class Solution:
     def canCompleteCircuit(self, gasList, costList):
-        self.circuitLength = len(gas)
+        self.circuitLength = len(gasList)
         self.gasList = gasList + gasList
         self.costList = costList + costList
 

@@ -1,0 +1,1745 @@
+{
+    "Metadata": {
+      "HighCastleBlueprintID#3c5b7308-d575-48bd-bd28-bce1ff16a0d9": "20.0.0",
+      "HighCastleDeploymentType": "Pipelines"
+    },
+    "Parameters": {
+      "PackagingAggregateId": {
+        "Type": "String",
+        "Default": "default_aggregate_id",
+        "Description": "Aggregate Id that can be used to reference resources from different transformations"
+      },
+      "PackagingTransformId": {
+        "Type": "String",
+        "Default": "default_aggregate_id_transform",
+        "Description": "Deployment Id is used to figure out artifact locations in S3 and ECR"
+      },
+      "PackagingS3KeyPrefix": {
+        "Type": "String",
+        "Default": "local_development_resources",
+        "Description": "Deployment Id is used to figure out artifact locations in S3 and ECR"
+      },
+      "AmazonPipelinesRollbackFlag": {
+        "Type": "String",
+        "Default": "false",
+        "Description": "When a rollback deployment is triggered in Pipelines, the system will override the AmazonPipelinesRollbackFlag with a value of true"
+      }
+    },
+    "Conditions": {
+      "IsRollback": {
+        "Fn::Equals": [
+          {
+            "Ref": "AmazonPipelinesRollbackFlag"
+          },
+          "true"
+        ]
+      }
+    },
+    "Resources": {
+      "ModelExecutionRole3247A550": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "AssumeRolePolicyDocument": {
+            "Statement": [
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "sagemaker.amazonaws.com"
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "ManagedPolicyArns": [
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":iam::aws:policy/AmazonSageMakerFullAccess"
+                ]
+              ]
+            }
+          ],
+          "RoleName": "ModelExecutionRole-AMZL-POD-Gamma-us-east-1"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ModelExecutionRole/Resource"
+        }
+      },
+      "ModelExecutionRoleDefaultPolicyFA1BB405": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": [
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:BatchGetImage"
+                ],
+                "Effect": "Allow",
+                "Resource": "arn:aws:ecr:us-east-1:943638903996:repository/barsecrrepo-6d344ba353c683daab02d0a4cf65260f8a2c3318"
+              },
+              {
+                "Action": "ecr:GetAuthorizationToken",
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "s3:GetObject*",
+                  "s3:GetBucket*",
+                  "s3:List*"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:DescribeKey"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketKeyBA872F3BArnB53D4188"
+                }
+              },
+              {
+                "Action": "cloudwatch:PutMetricData",
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "s3:PutObject",
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::GetAtt": [
+                      "DataCaptureBucket729F772E",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::GetAtt": [
+                            "DataCaptureBucket729F772E",
+                            "Arn"
+                          ]
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Action": [
+                  "kms:Encrypt",
+                  "kms:Decrypt",
+                  "kms:DescribeKey",
+                  "kms:GenerateDataKey*",
+                  "kms:ReEncrypt*"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::GetAtt": [
+                    "DataCaptureBucketKey71DA903D",
+                    "Arn"
+                  ]
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "PolicyName": "ModelExecutionRoleDefaultPolicyFA1BB405",
+          "Roles": [
+            {
+              "Ref": "ModelExecutionRole3247A550"
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ModelExecutionRole/DefaultPolicy/Resource"
+        }
+      },
+      "ModelSecurityGroup5F5BD5B0": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Model-Gamma-us-east-1/Model/Model/SecurityGroup",
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/Model/Model"
+            }
+          ],
+          "VpcId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcC302751171D26A23"
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Model/Model/SecurityGroup/Resource"
+        }
+      },
+      "ModelSecurityGrouptopl63a5400a443633BF6B9": {
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Properties": {
+          "Description": "to pl-63a5400a:443",
+          "DestinationPrefixListId": "pl-63a5400a",
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::GetAtt": [
+              "ModelSecurityGroup5F5BD5B0",
+              "GroupId"
+            ]
+          },
+          "IpProtocol": "tcp",
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Model/Model/SecurityGroup/to pl-63a5400a:443"
+        }
+      },
+      "ModelSecurityGrouptoVpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C0884430CA32D59": {
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Properties": {
+          "Description": "to VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443",
+          "DestinationSecurityGroupId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputFnGetAttVpcCloudWatchEndpointSecurityGroupFD299BA3GroupId2EBACC01"
+          },
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::GetAtt": [
+              "ModelSecurityGroup5F5BD5B0",
+              "GroupId"
+            ]
+          },
+          "IpProtocol": "tcp",
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Model/Model/SecurityGroup/to VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443"
+        }
+      },
+      "ModelSecurityGroupVpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088443to20FAAFCA": {
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Properties": {
+          "Description": "from ModelGammauseast1ModelSecurityGroupDD9FEA43:443",
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputFnGetAttVpcCloudWatchEndpointSecurityGroupFD299BA3GroupId2EBACC01"
+          },
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": {
+            "Fn::GetAtt": [
+              "ModelSecurityGroup5F5BD5B0",
+              "GroupId"
+            ]
+          },
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Model/Model/SecurityGroup/VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443 to"
+        }
+      },
+      "Model7CB8FA93": {
+        "Type": "AWS::SageMaker::Model",
+        "Properties": {
+          "ExecutionRoleArn": {
+            "Fn::GetAtt": [
+              "ModelExecutionRole3247A550",
+              "Arn"
+            ]
+          },
+          "PrimaryContainer": {
+            "Environment": {
+              "AWS_DEFAULT_REGION": "us-east-1",
+              "MODEL_NAME": "model_resnet101_2024-08-28_06-44-38.pth",
+              "THRESHOLD_HIGH": "0.013803",
+              "THRESHOLD_LOW": "0.007485",
+              "THRESHOLD_HUMAN": "0.666305",
+              "PROGRAM_NAME": "AMZL",
+              "IMAGE_TYPE": "POD"
+            },
+            "Image": {
+              "Fn::Join": [
+                "",
+                [
+                  "943638903996.dkr.ecr.us-east-1.amazonaws.com/barsecrrepo-6d344ba353c683daab02d0a4cf65260f8a2c3318:",
+                  {
+                    "Ref": "PackagingAggregateId"
+                  },
+                  "_LastMileImageAuditMLIm_main"
+                ]
+              ]
+            },
+            "ModelDataUrl": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://s3.us-east-1.",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/",
+                  {
+                    "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputRefReplicatedBucketDCCEFC2A0506762F"
+                  },
+                  "/LastMileImageAuditML/20240828.tar.gz"
+                ]
+              ]
+            }
+          },
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/Model/Model"
+            }
+          ],
+          "VpcConfig": {
+            "SecurityGroupIds": [
+              {
+                "Fn::GetAtt": [
+                  "ModelSecurityGroup5F5BD5B0",
+                  "GroupId"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet1SubnetDC3C6AF8B941AAD6"
+              },
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet2SubnetB479B99C56F3A211"
+              },
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet3SubnetA80AB4ACFB5BC3C8"
+              }
+            ]
+          }
+        },
+        "DependsOn": [
+          "ModelExecutionRoleDefaultPolicyFA1BB405",
+          "ModelExecutionRole3247A550"
+        ],
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Model/Model/Model"
+        }
+      },
+      "HydraTestRunResourcesHydraTestInvocationRoleBFC55A7F": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "AssumeRolePolicyDocument": {
+            "Statement": [
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "ecs-tasks.amazonaws.com"
+                }
+              },
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "lambda.amazonaws.com"
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "RoleName": "HydraInvocationRole-b3691a42cbb3eda0a4f2c4a077376d1fad2c55b5"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/HydraTestRunResources/HydraTestInvocationRole/Resource"
+        }
+      },
+      "HydraTestRunResourcesHydraTestInvocationRoleDefaultPolicy4F8538FE": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": [
+                  "logs:CreateLogGroup",
+                  "logs:CreateLogStream",
+                  "logs:DeleteLogGroup",
+                  "logs:PutLogEvents"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":logs:*:*:*"
+                    ]
+                  ]
+                }
+              },
+              {
+                "Action": [
+                  "ec2:CreateNetworkInterface",
+                  "ec2:DeleteNetworkInterface",
+                  "ec2:DescribeNetworkInterfaces",
+                  "ec2:DescribeSecurityGroups",
+                  "ec2:DescribeSubnets"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "ecr:GetAuthorizationToken",
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:BatchGetImage"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "s3:GetObject",
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":s3:::codetest-us-east-1-943638903996-do-not-delete/*"
+                      ]
+                    ]
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":s3:::hydra*"
+                      ]
+                    ]
+                  },
+                  "arn:aws:s3:::deploymentbucket-63182879f595ff5915790453510ab532e4057140/*"
+                ]
+              },
+              {
+                "Action": "kms:Decrypt",
+                "Condition": {
+                  "StringLike": {
+                    "kms:ViaService": "s3.us-east-1.amazonaws.com",
+                    "kms:EncryptionContext:aws:s3:arn": [
+                      "arn:aws:s3:::deploymentbucket-63182879f595ff5915790453510ab532e4057140/*"
+                    ]
+                  },
+                  "ForAnyValue:StringLike": {
+                    "kms:ResourceAliases": "alias/ArtifactEncryptionKey-188d90d3eda89e827af3232e131d094801153871"
+                  }
+                },
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "dynamodb:BatchWriteItem",
+                  "dynamodb:PutItem",
+                  "dynamodb:UpdateItem"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":dynamodb:us-east-1:943638903996:table/CODETEST_*_*"
+                    ]
+                  ]
+                }
+              },
+              {
+                "Action": [
+                  "cloudformation:DescribeStacks",
+                  "cloudformation:ListStacks"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "cloudwatch:PutMetricData",
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "s3:GetObject",
+                "Condition": {
+                  "StringLike": {
+                    "s3:DataAccessPointArn": "arn:*:s3:*:*:accesspoint/vulcan-*"
+                  }
+                },
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "kms:Decrypt",
+                "Condition": {
+                  "StringLike": {
+                    "kms:ViaService": "s3.*.amazonaws.com"
+                  },
+                  "ForAnyValue:StringLike": {
+                    "kms:ResourceAliases": "alias/vulcan-artifact-encryption-key"
+                  }
+                },
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "s3:GetObject*",
+                  "s3:GetBucket*",
+                  "s3:List*"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                        },
+                        "/test-data/LastMileImageAuditML/integ/endpoint/20230125*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:DescribeKey"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketKeyBA872F3BArnB53D4188"
+                }
+              },
+              {
+                "Action": "sagemaker:InvokeEndpoint",
+                "Effect": "Allow",
+                "Resource": {
+                  "Ref": "Endpoint8024A810"
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "PolicyName": "HydraTestRunResourcesHydraTestInvocationRoleDefaultPolicy4F8538FE",
+          "Roles": [
+            {
+              "Ref": "HydraTestRunResourcesHydraTestInvocationRoleBFC55A7F"
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/HydraTestRunResources/HydraTestInvocationRole/DefaultPolicy/Resource"
+        }
+      },
+      "HydraTestRunResourcesHydraPersistentConfigurationDB5A0737": {
+        "Type": "AWS::CodeTest::PersistentConfiguration",
+        "Properties": {
+          "Name": "AsmlModelHostingPyt-31b0b58a92f5c5a84375d3899094ad1f11c1ea31",
+          "ResultsRoleArn": "arn:aws:iam::943638903996:role/HydraTestResultsRole-a8de657a3c24f80184b35ba3767ea7b59ef29967",
+          "Version": "20230707000000"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/HydraTestRunResources/HydraPersistentConfiguration"
+        }
+      },
+      "ShadowModeModelRole2CA21DDA": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "AssumeRolePolicyDocument": {
+            "Statement": [
+              {
+                "Action": "sts:AssumeRole",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": "sagemaker.amazonaws.com"
+                }
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "ManagedPolicyArns": [
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":iam::aws:policy/AmazonSageMakerReadOnly"
+                ]
+              ]
+            },
+            {
+              "Fn::Join": [
+                "",
+                [
+                  "arn:",
+                  {
+                    "Ref": "AWS::Partition"
+                  },
+                  ":iam::aws:policy/CloudWatchLogsFullAccess"
+                ]
+              ]
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Role/Resource"
+        }
+      },
+      "ShadowModeModelRoleDefaultPolicy6D73CB51": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": [
+                  "ec2:CreateNetworkInterface",
+                  "ec2:CreateNetworkInterfacePermission",
+                  "ec2:DeleteNetworkInterface",
+                  "ec2:DeleteNetworkInterfacePermission",
+                  "ec2:DescribeNetworkInterfaces",
+                  "ec2:DescribeVpcs",
+                  "ec2:DescribeDhcpOptions",
+                  "ec2:DescribeSubnets",
+                  "ec2:DescribeSecurityGroups"
+                ],
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": "ssm:UpdateInstanceInformation",
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:BatchGetImage"
+                ],
+                "Effect": "Allow",
+                "Resource": "arn:aws:ecr:us-east-1:943638903996:repository/barsecrrepo-6d344ba353c683daab02d0a4cf65260f8a2c3318"
+              },
+              {
+                "Action": "ecr:GetAuthorizationToken",
+                "Effect": "Allow",
+                "Resource": "*"
+              },
+              {
+                "Action": [
+                  "s3:GetObject*",
+                  "s3:GetBucket*",
+                  "s3:List*"
+                ],
+                "Effect": "Allow",
+                "Resource": [
+                  {
+                    "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketDCCEFC2AArn204089FA"
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:DescribeKey"
+                ],
+                "Effect": "Allow",
+                "Resource": {
+                  "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputFnGetAttReplicatedBucketKeyBA872F3BArnB53D4188"
+                }
+              },
+              {
+                "Action": "cloudwatch:PutMetricData",
+                "Effect": "Allow",
+                "Resource": "*"
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "PolicyName": "ShadowModeModelRoleDefaultPolicy6D73CB51",
+          "Roles": [
+            {
+              "Ref": "ShadowModeModelRole2CA21DDA"
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Role/DefaultPolicy/Resource"
+        }
+      },
+      "ShadowModeModelSecurityGroupC8384AE8": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Model-Gamma-us-east-1/ShadowModeModel/Model/SecurityGroup",
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/ShadowModeModel/Model"
+            }
+          ],
+          "VpcId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcC302751171D26A23"
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Model/SecurityGroup/Resource"
+        }
+      },
+      "ShadowModeModelSecurityGrouptopl63a5400a4439A83D5F3": {
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Properties": {
+          "Description": "to pl-63a5400a:443",
+          "DestinationPrefixListId": "pl-63a5400a",
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::GetAtt": [
+              "ShadowModeModelSecurityGroupC8384AE8",
+              "GroupId"
+            ]
+          },
+          "IpProtocol": "tcp",
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Model/SecurityGroup/to pl-63a5400a:443"
+        }
+      },
+      "ShadowModeModelSecurityGrouptoVpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C0884436F3E38D3": {
+        "Type": "AWS::EC2::SecurityGroupEgress",
+        "Properties": {
+          "Description": "to VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443",
+          "DestinationSecurityGroupId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputFnGetAttVpcCloudWatchEndpointSecurityGroupFD299BA3GroupId2EBACC01"
+          },
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::GetAtt": [
+              "ShadowModeModelSecurityGroupC8384AE8",
+              "GroupId"
+            ]
+          },
+          "IpProtocol": "tcp",
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Model/SecurityGroup/to VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443"
+        }
+      },
+      "ShadowModeModelSecurityGroupVpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088443to4FF2E68E": {
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Properties": {
+          "Description": "from ModelGammauseast1ShadowModeModelSecurityGroup3F848430:443",
+          "FromPort": 443,
+          "GroupId": {
+            "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputFnGetAttVpcCloudWatchEndpointSecurityGroupFD299BA3GroupId2EBACC01"
+          },
+          "IpProtocol": "tcp",
+          "SourceSecurityGroupId": {
+            "Fn::GetAtt": [
+              "ShadowModeModelSecurityGroupC8384AE8",
+              "GroupId"
+            ]
+          },
+          "ToPort": 443
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Model/SecurityGroup/VpcGammauseast1VpcCloudWatchEndpointSecurityGroupF3E5C088:443 to"
+        }
+      },
+      "ShadowModeModelCC24174F": {
+        "Type": "AWS::SageMaker::Model",
+        "Properties": {
+          "ExecutionRoleArn": {
+            "Fn::GetAtt": [
+              "ShadowModeModelRole2CA21DDA",
+              "Arn"
+            ]
+          },
+          "PrimaryContainer": {
+            "Environment": {
+              "AWS_DEFAULT_REGION": "us-east-1",
+              "MODEL_NAME": "model_resnet101_2024-08-28_06-44-38.pth",
+              "THRESHOLD_HIGH": "0.013803",
+              "THRESHOLD_LOW": "0.007485",
+              "THRESHOLD_HUMAN": "0.666305",
+              "PROGRAM_NAME": "AMZL",
+              "IMAGE_TYPE": "POD"
+            },
+            "Image": {
+              "Fn::Join": [
+                "",
+                [
+                  "943638903996.dkr.ecr.us-east-1.amazonaws.com/barsecrrepo-6d344ba353c683daab02d0a4cf65260f8a2c3318:",
+                  {
+                    "Ref": "PackagingAggregateId"
+                  },
+                  "_LastMileImageAuditMLIm_main"
+                ]
+              ]
+            },
+            "ModelDataUrl": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://s3.us-east-1.",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/",
+                  {
+                    "Fn::ImportValue": "ModelArtifact-Gamma-us-east-1:ExportsOutputRefReplicatedBucketDCCEFC2A0506762F"
+                  },
+                  "/LastMileImageAuditML/20240828.tar.gz"
+                ]
+              ]
+            }
+          },
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/ShadowModeModel/Model"
+            }
+          ],
+          "VpcConfig": {
+            "SecurityGroupIds": [
+              {
+                "Fn::GetAtt": [
+                  "ShadowModeModelSecurityGroupC8384AE8",
+                  "GroupId"
+                ]
+              }
+            ],
+            "Subnets": [
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet1SubnetDC3C6AF8B941AAD6"
+              },
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet2SubnetB479B99C56F3A211"
+              },
+              {
+                "Fn::ImportValue": "Vpc-Gamma-us-east-1:ExportsOutputRefVpcIsolatedSubnet3SubnetA80AB4ACFB5BC3C8"
+              }
+            ]
+          }
+        },
+        "DependsOn": [
+          "ShadowModeModelRoleDefaultPolicy6D73CB51",
+          "ShadowModeModelRole2CA21DDA"
+        ],
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/ShadowModeModel/Model/Model"
+        }
+      },
+      "DataCaptureBucket729F772E": {
+        "Type": "AWS::S3::Bucket",
+        "Properties": {
+          "BucketEncryption": {
+            "ServerSideEncryptionConfiguration": [
+              {
+                "ServerSideEncryptionByDefault": {
+                  "KMSMasterKeyID": {
+                    "Fn::GetAtt": [
+                      "DataCaptureBucketKey71DA903D",
+                      "Arn"
+                    ]
+                  },
+                  "SSEAlgorithm": "aws:kms"
+                }
+              }
+            ]
+          },
+          "BucketName": "lastmileimageauditml-datacapturebucket",
+          "PublicAccessBlockConfiguration": {
+            "BlockPublicAcls": true,
+            "BlockPublicPolicy": true,
+            "IgnorePublicAcls": true,
+            "RestrictPublicBuckets": true
+          },
+          "Tags": [
+            {
+              "Key": "HighCastleBlueprintID-3c5b7308-d575-48bd-bd28-bce1ff16a0d9",
+              "Value": "20.0.0"
+            },
+            {
+              "Key": "HighCastleDeploymentType",
+              "Value": "Pipelines"
+            }
+          ],
+          "VersioningConfiguration": {
+            "Status": "Enabled"
+          }
+        },
+        "UpdateReplacePolicy": "Retain",
+        "DeletionPolicy": "Retain",
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/DataCaptureBucket/Resource"
+        }
+      },
+      "DataCaptureBucketPolicy518EE856": {
+        "Type": "AWS::S3::BucketPolicy",
+        "Properties": {
+          "Bucket": {
+            "Ref": "DataCaptureBucket729F772E"
+          },
+          "PolicyDocument": {
+            "Statement": [
+              {
+                "Action": "s3:*",
+                "Condition": {
+                  "Bool": {
+                    "aws:SecureTransport": "false"
+                  }
+                },
+                "Effect": "Deny",
+                "Principal": {
+                  "AWS": "*"
+                },
+                "Resource": [
+                  {
+                    "Fn::GetAtt": [
+                      "DataCaptureBucket729F772E",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::GetAtt": [
+                            "DataCaptureBucket729F772E",
+                            "Arn"
+                          ]
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                ]
+              },
+              {
+                "Action": "s3:PutObject",
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": {
+                    "Fn::GetAtt": [
+                      "ModelExecutionRole3247A550",
+                      "Arn"
+                    ]
+                  }
+                },
+                "Resource": [
+                  {
+                    "Fn::GetAtt": [
+                      "DataCaptureBucket729F772E",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::GetAtt": [
+                            "DataCaptureBucket729F772E",
+                            "Arn"
+                          ]
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ],
+            "Version": "2012-10-17"
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/DataCaptureBucket/Policy/Resource"
+        }
+      },
+      "DataCaptureBucketKey71DA903D": {
+        "Type": "AWS::KMS::Key",
+        "Properties": {
+          "Description": "Created by Model-Gamma-us-east-1/DataCaptureBucket",
+          "EnableKeyRotation": true,
+          "KeyPolicy": {
+            "Statement": [
+              {
+                "Action": "kms:*",
+                "Effect": "Allow",
+                "Principal": {
+                  "AWS": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:",
+                        {
+                          "Ref": "AWS::Partition"
+                        },
+                        ":iam::943638903996:root"
+                      ]
+                    ]
+                  }
+                },
+                "Resource": "*"
+              }
+            ],
+            "Version": "2012-10-17"
+          },
+          "Tags": [
+            {
+              "Key": "HighCastleBlueprintID-3c5b7308-d575-48bd-bd28-bce1ff16a0d9",
+              "Value": "20.0.0"
+            },
+            {
+              "Key": "HighCastleDeploymentType",
+              "Value": "Pipelines"
+            }
+          ]
+        },
+        "UpdateReplacePolicy": "Retain",
+        "DeletionPolicy": "Retain",
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/DataCaptureBucketKey/Resource"
+        }
+      },
+      "EndpointConfigFD7B6F91": {
+        "Type": "AWS::SageMaker::EndpointConfig",
+        "Properties": {
+          "DataCaptureConfig": {
+            "CaptureContentTypeHeader": {
+              "CsvContentTypes": [
+                "text/csv"
+              ],
+              "JsonContentTypes": [
+                "application/json"
+              ]
+            },
+            "CaptureOptions": [
+              {
+                "CaptureMode": "Input"
+              },
+              {
+                "CaptureMode": "Output"
+              }
+            ],
+            "DestinationS3Uri": "s3://lastmileimageauditml-datacapturebucket/DataCapture",
+            "EnableCapture": true,
+            "InitialSamplingPercentage": 100,
+            "KmsKeyId": {
+              "Ref": "DataCaptureBucketKey71DA903D"
+            }
+          },
+          "ProductionVariants": [
+            {
+              "InitialInstanceCount": 1,
+              "InitialVariantWeight": 1,
+              "InstanceType": "ml.p3.2xlarge",
+              "ModelName": {
+                "Fn::GetAtt": [
+                  "Model7CB8FA93",
+                  "ModelName"
+                ]
+              },
+              "VariantName": "main"
+            }
+          ],
+          "ShadowProductionVariants": [
+            {
+              "InitialInstanceCount": 1,
+              "InitialVariantWeight": 1,
+              "InstanceType": "ml.p3.2xlarge",
+              "ModelName": {
+                "Fn::GetAtt": [
+                  "ShadowModeModelCC24174F",
+                  "ModelName"
+                ]
+              },
+              "VariantName": "shadow"
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/EndpointConfig"
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/EndpointConfig/EndpointConfig"
+        }
+      },
+      "Endpoint8024A810": {
+        "Type": "AWS::SageMaker::Endpoint",
+        "Properties": {
+          "EndpointConfigName": {
+            "Fn::GetAtt": [
+              "EndpointConfigFD7B6F91",
+              "EndpointConfigName"
+            ]
+          },
+          "EndpointName": "LastMileImageAuditML",
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Model-Gamma-us-east-1/Endpoint"
+            }
+          ]
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Endpoint/Endpoint"
+        }
+      },
+      "EndpointInstanceCountTargetDA8C8EDB": {
+        "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+        "Properties": {
+          "MaxCapacity": 60,
+          "MinCapacity": 1,
+          "ResourceId": {
+            "Fn::Join": [
+              "",
+              [
+                "endpoint/",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "/variant/main"
+              ]
+            ]
+          },
+          "RoleARN": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::943638903996:role/aws-service-role/sagemaker.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_SageMakerEndpoint"
+              ]
+            ]
+          },
+          "ScalableDimension": "sagemaker:variant:DesiredInstanceCount",
+          "ServiceNamespace": "sagemaker"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Endpoint/InstanceCount/Target/Resource"
+        }
+      },
+      "EndpointInstanceCountTargetLimitRPSE1D92DB6": {
+        "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+        "Properties": {
+          "PolicyName": "ModelGammauseast1EndpointInstanceCountTargetLimitRPS1F470C71",
+          "PolicyType": "TargetTrackingScaling",
+          "ScalingTargetId": {
+            "Ref": "EndpointInstanceCountTargetDA8C8EDB"
+          },
+          "TargetTrackingScalingPolicyConfiguration": {
+            "PredefinedMetricSpecification": {
+              "PredefinedMetricType": "SageMakerVariantInvocationsPerInstance"
+            },
+            "TargetValue": 600
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/Endpoint/InstanceCount/Target/LimitRPS/Resource"
+        }
+      },
+      "AMZLPODModelLatency5EF28534": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODModelLatency",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 3,
+          "ExtendedStatistic": "p90",
+          "MetricName": "ModelLatency",
+          "Namespace": "AWS/SageMaker",
+          "Period": 300,
+          "Threshold": 100000,
+          "TreatMissingData": "notBreaching"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODModelLatency/Resource"
+        }
+      },
+      "AMZLPODCpuUtilization4243C595": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODCpuUtilization",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 3,
+          "MetricName": "CPUUtilization",
+          "Namespace": "/aws/sagemaker/Endpoints",
+          "Period": 300,
+          "Statistic": "Average",
+          "Threshold": 160
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODCpuUtilization/Resource"
+        }
+      },
+      "AMZLPODDiskUtilization2985DA7E": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODDiskUtilization",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 3,
+          "MetricName": "DiskUtilization",
+          "Namespace": "/aws/sagemaker/Endpoints",
+          "Period": 300,
+          "Statistic": "Average",
+          "Threshold": 80
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODDiskUtilization/Resource"
+        }
+      },
+      "AMZLPODMemoryUtilizationA6FD419F": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODMemoryUtilization",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 3,
+          "MetricName": "MemoryUtilization",
+          "Namespace": "/aws/sagemaker/Endpoints",
+          "Period": 300,
+          "Statistic": "Average",
+          "Threshold": 80
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODMemoryUtilization/Resource"
+        }
+      },
+      "AMZLPODInvocation4XXErrorsA25B50F2": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODInvocation4XXErrors",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 1,
+          "MetricName": "Invocation4XXErrors",
+          "Namespace": "AWS/SageMaker",
+          "Period": 300,
+          "Statistic": "Sum",
+          "Threshold": 10,
+          "TreatMissingData": "notBreaching"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODInvocation4XXErrors/Resource"
+        }
+      },
+      "AMZLPODInvocation5XXErrors3CFCE031": {
+        "Type": "AWS::CloudWatch::Alarm",
+        "Properties": {
+          "AlarmName": "AMZLPODInvocation5XXErrors",
+          "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+          "Dimensions": [
+            {
+              "Name": "EndpointName",
+              "Value": {
+                "Fn::GetAtt": [
+                  "Endpoint8024A810",
+                  "EndpointName"
+                ]
+              }
+            },
+            {
+              "Name": "VariantName",
+              "Value": "main"
+            }
+          ],
+          "EvaluationPeriods": 1,
+          "MetricName": "Invocation5XXErrors",
+          "Namespace": "AWS/SageMaker",
+          "Period": 300,
+          "Statistic": "Sum",
+          "Threshold": 1,
+          "TreatMissingData": "notBreaching"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/AMZLPODInvocation5XXErrors/Resource"
+        }
+      },
+      "LastMileImageAuditMLEndpointDashboardAMZLPODE294ABF0": {
+        "Type": "AWS::CloudWatch::Dashboard",
+        "Properties": {
+          "DashboardBody": {
+            "Fn::Join": [
+              "",
+              [
+                "{\"widgets\":[{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"CPU Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"CPUUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Memory Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"MemoryUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Disk Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"DiskUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocations\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"Invocations\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocations Per Instance\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"InvocationsPerInstance\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocation Errors\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"Invocation4XXErrors\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"Sum\"}],[\"AWS/SageMaker\",\"Invocation5XXErrors\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P50\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p50\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P90\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p90\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P99\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p99\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P50\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p50\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P90\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p90\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P99\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"main\",{\"stat\":\"p99\"}]],\"yAxis\":{}}}]}"
+              ]
+            ]
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/LastMileImageAuditMLEndpointDashboardAMZLPOD/Resource"
+        }
+      },
+      "LastMileImageAuditMLEndpointDecisionsAMZLPOD7BE69544": {
+        "Type": "AWS::CloudWatch::Dashboard",
+        "Properties": {
+          "DashboardBody": "{\"widgets\":[{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"ModelLatency\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Average\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Valid Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"ValidCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invalid Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"InvalidCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Not Sure Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"NotSureCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Human in Photo\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"HumanInPhotoCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Photo Is Too Dark\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PhotoTooDarkCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Blurry Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PhotoTooBlurryCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package Too Close\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PackageTooCloseCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Mailbox\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PackageInMailboxCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Hand\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PackageInHandCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Car\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"PackageInCarCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"No Package\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD\",\"NoPackageCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}}]}",
+          "DashboardName": "LastMileImageAuditMLEndpointDecisionsAMZLPOD"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/LastMileImageAuditMLEndpointDecisionsAMZLPOD/Resource"
+        }
+      },
+      "LastMileImageAuditMLEndpointDashboardAMZLPODSHADOWMODE73986191": {
+        "Type": "AWS::CloudWatch::Dashboard",
+        "Properties": {
+          "DashboardBody": {
+            "Fn::Join": [
+              "",
+              [
+                "{\"widgets\":[{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"CPU Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"CPUUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Memory Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"MemoryUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Disk Utilization\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"/aws/sagemaker/Endpoints\",\"DiskUtilization\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\"]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocations\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"Invocations\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocations Per Instance\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"InvocationsPerInstance\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invocation Errors\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"Invocation4XXErrors\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"Sum\"}],[\"AWS/SageMaker\",\"Invocation5XXErrors\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"Sum\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P50\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p50\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P90\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p90\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency P99\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"ModelLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p99\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P50\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p50\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P90\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p90\"}]],\"yAxis\":{}}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":18,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Overhead Latency P99\",\"region\":\"",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\",\"metrics\":[[\"AWS/SageMaker\",\"OverheadLatency\",\"EndpointName\",\"",
+                {
+                  "Fn::GetAtt": [
+                    "Endpoint8024A810",
+                    "EndpointName"
+                  ]
+                },
+                "\",\"VariantName\",\"shadow\",{\"stat\":\"p99\"}]],\"yAxis\":{}}}]}"
+              ]
+            ]
+          }
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/LastMileImageAuditMLEndpointDashboardAMZLPOD_SHADOW_MODE/Resource"
+        }
+      },
+      "LastMileImageAuditMLEndpointDecisionsAMZLPODSHADOWMODE729A963A": {
+        "Type": "AWS::CloudWatch::Dashboard",
+        "Properties": {
+          "DashboardBody": "{\"widgets\":[{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Model Latency\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"ModelLatency\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Average\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Valid Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"ValidCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Invalid Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"InvalidCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":0,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Not Sure Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"NotSureCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Human in Photo\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"HumanInPhotoCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Photo Is Too Dark\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PhotoTooDarkCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Blurry Images\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PhotoTooBlurryCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package Too Close\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PackageTooCloseCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Mailbox\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PackageInMailboxCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":6,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Hand\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PackageInHandCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":12,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"Package in Car\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"PackageInCarCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}},{\"type\":\"metric\",\"width\":6,\"height\":6,\"x\":18,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"title\":\"No Package\",\"region\":\"us-east-1\",\"metrics\":[[\"LastMileImageAuditMLAMZLPOD_SHADOW_MODE\",\"NoPackageCount\"]],\"yAxis\":{},\"period\":300,\"stat\":\"Sum\"}}]}",
+          "DashboardName": "LastMileImageAuditMLEndpointDecisionsAMZLPOD_SHADOW_MODE"
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/LastMileImageAuditMLEndpointDecisionsAMZLPOD_SHADOW_MODE/Resource"
+        }
+      },
+      "CDKMetadata": {
+        "Type": "AWS::CDK::Metadata",
+        "Properties": {
+          "Analytics": "v2:deflate64:H4sIAAAAAAAA/31SXW/bMAz8LXlX1Dothu1tbVqsRTEgcPI+MDLjsJYlg5QWeIL++yA7WdsN2NMdjyd+SLrV1zpV1ZfFV+h/uauBBrTkUPQDDtaPPbqwDWA6dVOdLcexYdDpqcAOJdTR1Sg+skFR64ObEhtkIQnowtq7A7WRIZB3OauVrj5VulrASZam6ZaW9jqtD24DDD0G5FJj7V1D5YCCk/xIBL1OtbdYchNuvCUzlnBmWaFZ6bRFE5nC+I19HEr2/8Jjyyjyj/zsJj0rgRZ76JCnCb/7Bm0xP7pm8HRZ7b1SxmBd4+CFgufxHgSV3Oh0H02HoVjPbIa3Nd7HWXW96PSCU+YFx6xgGCyZ6Q4hBi8GLLlWp9Jga8DC3uJdCEz7GFBdlB1wO3f9S5lhx2A6cu12rvY2zAchK2N9bE4QzFGnOwvcF89MHkCOew/cFOlPkLO6fInpxc48K+cb1K9y9bP6rFfX+nbxKkRLji5Qj7qe8TdgnuFEkwIAAA=="
+        },
+        "Metadata": {
+          "aws:cdk:path": "Model-Gamma-us-east-1/CDKMetadata/Default"
+        }
+      }
+    }
+  }

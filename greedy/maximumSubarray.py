@@ -1,11 +1,20 @@
+class Solution:
+    def maxSubArray(self, nums: List[int]) -> int:
 
+        # kadanes algorithm : max(nums[i], current_max_sum + nums[i])
+        
+        current_maxsum = nums[0]
 
-def maxSubarray(nums):
-    max_global = nums[0]
-    max_current_sum = nums[0]
+        global_max = nums[0]
 
-    for i in range(1, len(nums)):
-        max_current_sum = max(nums[i], nums[i] + max_current_sum)
-        max_global = max(max_global, max_current_sum)
-    
-    return max_global
+        for num in nums[1:]:
+            current_maxsum = max(num, current_maxsum + num)
+            
+            global_max = max(global_max, current_maxsum)
+        
+        return global_max
+'''
+
+ -2,1, 1,5, 4,6,7,
+[-2,1,-3,4,-1,2,1,-5,4]
+'''
